@@ -1,0 +1,29 @@
+#!/bin/bash
+
+if [ -z "$(ls -A ~/Music/Playlists)" ]; then
+    printf "There is no playlist available in \"~/Music/Playlists\".\n"
+    read -p "Create a new playlist? (y/n) " PROMPT_FOR_PLAYLIST
+    if [ $PROMPT_FOR_PLAYLIST == "y" ] || [ $PROMPT_FOR_PLAYLIST == "Y" ] || \
+        [ $PROMPT_FOR_PLAYLIST == "yes" ] || [ $PROMPT_FOR_PLAYLIST == "Yes" ]; then
+        printf "Enter playlist name\n"
+        read -p "~> " PLAYLIST_NAME
+        mkdir "$HOME/Music/Playlists/$PLAYLIST_NAME"
+        printf "!! New playlist has been created.\n"
+    else
+        printf "!! No playlist has been created; Exiting program.\n"
+    fi
+    exit
+fi
+
+let i=0
+
+PLAYLISTS=()
+SONGS=()
+
+while read -r line; do # process file by file
+    let i=$i+1
+    PLAYLISTS+=($i "$line")
+done < <( ls -1 "$HOME/Music/Playlists" )
+
+PLAYLIST=$(whiptail --clear --title "plipple: Choose a playlist" --menu "Choose a playlist:" 24 80 17 "${PLAYLISTS[@]}" 3>&2 2>&1 1>&3) # show dialog and store output
+PLAYLIST="$HOME/Music/Playlists/$(ls -1 "$HOME/Music/Playlists/" | sed -n "$PLAYLIST p")"
