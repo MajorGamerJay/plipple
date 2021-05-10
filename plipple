@@ -20,10 +20,37 @@ let i=0
 PLAYLISTS=()
 SONGS=()
 
-while read -r line; do # process file by file
+# Options for actions to do with selected playlist
+PLAYLIST_OPTIONS=(
+    "1" "Add a song to playlist"
+    "2" "Remove song from playlist"
+    "3" "View songs in playlist"
+    "4" "Delete playlist"
+)
+
+# Enumerate playlists and add to array
+while read -r line; do
     let i=$i+1
     PLAYLISTS+=($i "$line")
-done < <( ls -1 "$HOME/Music/Playlists" )
+done < <( find $HOME/Music/Playlists -mindepth 1 -maxdepth 1 -type d )
 
+# Ask to choose a playlist
 PLAYLIST=$(whiptail --clear --title "plipple: Choose a playlist" --menu "Choose a playlist:" 24 80 17 "${PLAYLISTS[@]}" 3>&2 2>&1 1>&3) # show dialog and store output
-PLAYLIST="$HOME/Music/Playlists/$(ls -1 "$HOME/Music/Playlists/" | sed -n "$PLAYLIST p")"
+PLAYLIST=$(find "$HOME/Music/Playlists/" -mindepth 1 -maxdepth 1 -type d | sed -n "$PLAYLIST p")
+
+# Testing: ask for action to do with playlist
+ACTION=$(whiptail --clear --title "plipple: Playlist options" --menu "Playlist options" 24 80 17 "${PLAYLIST_OPTIONS[@]}" 3>&2 2>&1 1>&3)
+
+if [ $ACTION -eq 1 ]; then
+    printf "Action 1 was chosen\n"
+elif [ $ACTION -eq 2 ]; then
+    let i=0
+    while read -r line; do
+        let i=$i+1
+        SONGS+=($i "$line")
+    done < <( find "$PLAYLIST" -mindepth 1 -maxdepth 1 -type f )
+    CHOSEN_SONG=$(whiptail --clear --title "plipple: Remove a song" --menu "Playlist options" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
+    printf "CHOSEN SONG: %s" $CHOSEN_SONG
+    CHOSEN_SONG=$(find "$PLAYLIST" -mindepth 1 -maxdepth 1 -type f | sed -n "$CHOSEN_SONG p")
+    rm $CHOSEN_SONG
+fi
