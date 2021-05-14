@@ -44,6 +44,12 @@ ACTION=$(whiptail --clear --title "plipple: Playlist options" --menu "Playlist o
 if [ $ACTION -eq 1 ]; then
     printf "Action 1 was chosen\n"
 elif [ $ACTION -eq 2 ]; then
+    # Check whether songs are available in the chosen playlist or not
+    if [ -z $(ls "$PLAYLIST") ]; then
+        printf "There are no songs available in the chosen playlist.\n"
+        exit 1
+    fi
+
     let i=0
     while read -r line; do
         let i=$i+1
