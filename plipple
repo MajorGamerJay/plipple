@@ -43,20 +43,31 @@ ACTION=$(whiptail --clear --title "plipple: Playlist options" --menu "Playlist o
 
 if [ $ACTION -eq 1 ]; then
     printf "Action 1 was chosen\n"
-elif [ $ACTION -eq 2 ]; then
-    # Check whether songs are available in the chosen playlist or not
-    if [ -z $(ls "$PLAYLIST") ]; then
-        printf "There are no songs available in the chosen playlist.\n"
-        exit 1
-    fi
 
+    SONGS=()
     let i=0
     while read -r line; do
         let i=$i+1
         SONGS+=($i "$line")
-    done < <( find "$PLAYLIST" -mindepth 1 -maxdepth 1 -type f )
-    CHOSEN_SONG=$(whiptail --clear --title "plipple: Remove a song" --menu "Playlist options" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
-    printf "CHOSEN SONG: %s" $CHOSEN_SONG
-    CHOSEN_SONG=$(find "$PLAYLIST" -mindepth 1 -maxdepth 1 -type f | sed -n "$CHOSEN_SONG p")
-    rm $CHOSEN_SONG
+    done < <( find "$HOME/Music/" -mindepth 1 -type f )
+    CHOSEN_SONG=$(whiptail --clear --title "plipple: Add a song" --menu "Add a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
+    CHOSEN_SONG=$(find "$HOME/Music/" -mindepth 1 -type f | sed -n "$CHOSEN_SONG p")
+    echo "$CHOSEN_SONG"
+    ln -s "$CHOSEN_SONG" "$PLAYLIST"
+elif [ $ACTION -eq 2 ]; then
+    # Check whether songs are available in the chosen playlist or not
+    if [ -z "$(ls "$PLAYLIST")" ]; then
+        printf "There are no songs available in the chosen playlist.\n"
+        exit 1
+    fi
+
+    SONGS=()
+    let i=0
+    while read -r line; do
+        let i=$i+1
+        SONGS+=($i "$line")
+    done < <( find "$PLAYLIST" -mindepth 1 )
+    CHOSEN_SONG=$(whiptail --clear --title "plipple: Remove a song" --menu "Remove a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
+    CHOSEN_SONG=$(find "$PLAYLIST" -mindepth 1 | sed -n "$CHOSEN_SONG p")
+    rm "$CHOSEN_SONG"
 fi
