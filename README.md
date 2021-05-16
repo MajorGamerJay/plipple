@@ -1,6 +1,5 @@
 # plipple
 ### majorgamerjay@protonmail.com
-
 Plipple is a simple bash script that can be used to make playlist of songs using
 directories and symlinks. This as a result, does not take much space and can be
 easily managable.
@@ -53,3 +52,8 @@ And that's it!
 ## License
 
 This program is created under the MIT License.
+
+## Screenshots
+
+<img src="https://i.imgur.com/MfU6Ccn.png">
+<img src="https://i.imgur.com/y5oeqSQ.png">
