@@ -35,39 +35,76 @@ while read -r line; do
 done < <( find $HOME/Music/Playlists -mindepth 1 -maxdepth 1 -type d )
 
 # Ask to choose a playlist
-PLAYLIST=$(whiptail --clear --title "plipple: Choose a playlist" --menu "Choose a playlist:" 24 80 17 "${PLAYLISTS[@]}" 3>&2 2>&1 1>&3) # show dialog and store output
-PLAYLIST=$(find "$HOME/Music/Playlists/" -mindepth 1 -maxdepth 1 -type d | sed -n "$PLAYLIST p")
+while true; do
+    PLAYLIST=$(whiptail --clear --title "plipple: Choose a playlist" --menu "Choose a playlist:" 24 80 17 "${PLAYLISTS[@]}" 3>&2 2>&1 1>&3) # show dialog and store output
 
-# Testing: ask for action to do with playlist
-ACTION=$(whiptail --clear --title "plipple: Playlist options" --menu "Playlist options" 24 80 17 "${PLAYLIST_OPTIONS[@]}" 3>&2 2>&1 1>&3)
-
-if [ $ACTION -eq 1 ]; then
-    printf "Action 1 was chosen\n"
-
-    SONGS=()
-    let i=0
-    while read -r line; do
-        let i=$i+1
-        SONGS+=($i "$line")
-    done < <( find "$HOME/Music/" -mindepth 1 -type f )
-    CHOSEN_SONG=$(whiptail --clear --title "plipple: Add a song" --menu "Add a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
-    CHOSEN_SONG=$(find "$HOME/Music/" -mindepth 1 -type f | sed -n "$CHOSEN_SONG p")
-    echo "$CHOSEN_SONG"
-    ln -s "$CHOSEN_SONG" "$PLAYLIST"
-elif [ $ACTION -eq 2 ]; then
-    # Check whether songs are available in the chosen playlist or not
-    if [ -z "$(ls "$PLAYLIST")" ]; then
-        printf "There are no songs available in the chosen playlist.\n"
+    if [ $? -eq 1 ]; then
         exit 1
     fi
 
-    SONGS=()
-    let i=0
-    while read -r line; do
-        let i=$i+1
-        SONGS+=($i "$line")
-    done < <( find "$PLAYLIST" -mindepth 1 )
-    CHOSEN_SONG=$(whiptail --clear --title "plipple: Remove a song" --menu "Remove a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
-    CHOSEN_SONG=$(find "$PLAYLIST" -mindepth 1 | sed -n "$CHOSEN_SONG p")
-    rm "$CHOSEN_SONG"
-fi
+    PLAYLIST=$(find "$HOME/Music/Playlists/" -mindepth 1 -maxdepth 1 -type d | sed -n "$PLAYLIST p")
+
+    # Testing: ask for action to do with playlist
+    ACTION=$(whiptail --clear --title "plipple: Playlist options" --menu "Playlist options" 24 80 17 "${PLAYLIST_OPTIONS[@]}" 3>&2 2>&1 1>&3)
+
+    if [ $? -eq 1 ]; then
+        continue
+    fi
+
+    if [ $ACTION -eq 1 ]; then
+        SONGS=()
+        let i=0
+        while read -r line; do
+            let i=$i+1
+            SONGS+=($i "$line")
+        done < <( find "$HOME/Music/" -mindepth 1 -type f )
+        CHOSEN_SONG=$(whiptail --clear --title "plipple: Add a song" --menu "Add a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
+
+        if [ $? -eq 1 ]; then
+            continue
+        fi
+
+        CHOSEN_SONG=$(find "$HOME/Music/" -mindepth 1 -type f | sed -n "$CHOSEN_SONG p")
+        ln -s "$CHOSEN_SONG" "$PLAYLIST"
+    elif [ $ACTION -eq 2 ]; then
+        # Check whether songs are available in the chosen playlist or not
+        if [ -z "$(ls "$PLAYLIST")" ]; then
+            printf "There are no songs available in the chosen playlist.\n"
+            exit 1
+        fi
+
+        SONGS=()
+        let i=0
+        while read -r line; do
+            let i=$i+1
+            SONGS+=($i "$line")
+        done < <( find "$PLAYLIST" -mindepth 1 )
+        CHOSEN_SONG=$(whiptail --clear --title "plipple: Remove a song" --menu "Remove a song" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3)
+
+        if [ $? -eq 1 ]; then
+            continue
+        fi
+
+        CHOSEN_SONG=$(find "$PLAYLIST" -mindepth 1 | sed -n "$CHOSEN_SONG p")
+        rm "$CHOSEN_SONG"
+    elif [ $ACTION -eq 3 ]; then
+        # Check whether songs are available in the chosen playlist or not
+        if [ -z "$(ls "$PLAYLIST")" ]; then
+            printf "There are no songs available in the chosen playlist.\n"
+            exit 1
+        fi
+
+        SONGS=()
+        let i=0
+        while read -r line; do
+            let i=$i+1
+            SONGS+=($i "$line")
+        done < <( find "$PLAYLIST" -mindepth 1 )
+        whiptail --clear --title "plipple: Available songs" --menu "Available songs in the playlist" 24 80 17 "${SONGS[@]}" 3>&2 2>&1 1>&3
+
+        if [ $? -eq 1 ]; then
+            continue
+        fi
+
+    fi
+done
